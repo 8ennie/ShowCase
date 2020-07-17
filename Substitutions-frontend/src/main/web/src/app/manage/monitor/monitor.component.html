@@ -1,0 +1,76 @@
+<div style="text-align: center;">
+    <h1>Monitores</h1>
+    <p-table [columns]="cols" [value]="monitors" selectionMode="single" [(selection)]="selectedMonitor"
+        (onRowSelect)="onRowSelect($event)" [paginator]="true" [rows]="15">
+        <ng-template pTemplate="caption">
+            List of Monitors
+        </ng-template>
+        <ng-template pTemplate="header" let-columns>
+            <tr>
+                <th *ngFor="let col of columns" [pSortableColumn]="col.field">
+                    {{col.header}}
+                    <p-sortIcon [field]="col.field"></p-sortIcon>
+                </th>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-rowData let-columns="columns">
+            <tr [pSelectableRow]="rowData">
+                <td *ngFor="let col of columns">
+                    <ng-template *ngIf="col.field === 'status'">    
+                        <p-toggleButton [(ngModel)]="rowData[col.field]" onLabel="An" offLabel="Aus"></p-toggleButton>
+                    </ng-template>
+                        {{rowData[col.field]}}
+                </td>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="summary" let-rowData>
+            <div style="text-align:left">
+                <button type="button" pButton icon="pi pi-plus" (click)="showDialogToAdd()" label="Add"></button>
+            </div>
+        </ng-template>
+    </p-table>
+    <p-dialog header="Monitor Details" [(visible)]="displayDialog" [focusOnShow]="false" [responsive]="true"
+        showEffect="fade" [modal]="true" [style]="{width: '300px'}">
+        <div class="ui-g ui-fluid" *ngIf="monitor">
+            <div class="ui-g-12">
+                <div class="ui-g-4">
+                    <label for="ipAddress">IP Adresse</label>
+                </div>
+                <div class="ui-g-8">
+                    <input pInputText id="ipAddress" [(ngModel)]="monitor.ipAddress" autofocus />
+                </div>
+            </div>
+            <div class="ui-g-12">
+                <div class="ui-g-4">
+                    <label for="name">Name</label>
+                </div>
+                <div class="ui-g-8">
+                    <input pInputText id="name" [(ngModel)]="monitor.name" />
+                </div>
+            </div>
+            <div class="ui-g-12">
+                <div class="ui-g-4">
+                    <label for="location">Location</label>
+                </div>
+                <div class="ui-g-8">
+                    <input pInputText id="location" [(ngModel)]="monitor.location" />
+                </div>
+            </div>
+            <div class="ui-g-12">
+                <div class="ui-g-4">
+                    <label for="status">Status</label>
+                </div>
+                <div class="ui-g-8">
+                    <button type="button" pButton (click)="monitorOn()" label="On"></button>
+                    <button type="button" pButton (click)="monitorOff()" label="Off"></button>
+                </div>
+            </div>
+        </div>
+        <p-footer>
+            <div class="ui-dialog-buttonpane ui-helper-clearfix">
+                <button type="button" pButton icon="pi pi-times" (click)="delete()" label="Delete"></button>
+                <button type="button" pButton icon="pi pi-check" (click)="save()" label="Save"></button>
+            </div>
+        </p-footer>
+    </p-dialog>
+</div>
