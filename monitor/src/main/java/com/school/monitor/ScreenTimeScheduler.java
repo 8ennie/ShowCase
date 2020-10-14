@@ -1,5 +1,6 @@
 package com.school.monitor;
 
+import java.time.DayOfWeek;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -38,13 +39,13 @@ public class ScreenTimeScheduler {
 		poolScheduler = new ThreadPoolTaskScheduler();
 		poolScheduler.setThreadNamePrefix("ThreadPoolTaskScheduler");
 		poolScheduler.setPoolSize(1);
-		poolScheduler.initialize();		
-		
+		poolScheduler.initialize();
+
 	}
 
 	@PostConstruct
 	public void initSchedul() {
-		if( monitorSettings.isOverwriteScreenTime()) {
+		if (monitorSettings.isOverwriteScreenTime()) {
 			LocalTime sleepTime = monitorSettings.getSleepTime();
 			if (sleepTime != null) {
 				scheduleSleepTime(sleepTime);
@@ -63,11 +64,20 @@ public class ScreenTimeScheduler {
 		LocalTime now = LocalTime.now();
 		LocalDateTime timeToRun = LocalDateTime.of(LocalDate.now(), sleepTime);
 		timeToRun = now.isBefore(sleepTime) ? timeToRun : timeToRun.plus(1, ChronoUnit.DAYS);
+
+		if (timeToRun.getDayOfWeek() == DayOfWeek.SATURDAY) {
+			timeToRun = timeToRun.plus(2, ChronoUnit.DAYS);
+		}
+
+		if (timeToRun.getDayOfWeek() == DayOfWeek.SUNDAY) {
+			timeToRun = timeToRun.plus(1, ChronoUnit.DAYS);
+		}
+
 		ZoneId zone = ZoneId.of("Europe/Berlin");
 		ZoneOffset zoneOffSet = zone.getRules().getOffset(timeToRun);
 		Instant whenToRun = timeToRun.toInstant(zoneOffSet);
 		scheduledSleepTime = poolScheduler.schedule(() -> turnMonitorOff(whenToRun), whenToRun);
-		LOGGER.info("Sleep Time schedule for: " + sleepTime);
+		LOGGER.info("Sleep Time schedule for: " + sleepTime + " on " + timeToRun.getDayOfWeek());
 	}
 
 	public void scheduleWakeTime(LocalTime wakeTime) {
@@ -77,11 +87,19 @@ public class ScreenTimeScheduler {
 		LocalTime now = LocalTime.now();
 		LocalDateTime timeToRun = LocalDateTime.of(LocalDate.now(), wakeTime);
 		timeToRun = now.isBefore(wakeTime) ? timeToRun : timeToRun.plus(1, ChronoUnit.DAYS);
+
+		if (timeToRun.getDayOfWeek() == DayOfWeek.SATURDAY) {
+			timeToRun = timeToRun.plus(2, ChronoUnit.DAYS);
+		}
+
+		if (timeToRun.getDayOfWeek() == DayOfWeek.SUNDAY) {
+			timeToRun = timeToRun.plus(1, ChronoUnit.DAYS);
+		}
 		ZoneId zone = ZoneId.of("Europe/Berlin");
 		ZoneOffset zoneOffSet = zone.getRules().getOffset(timeToRun);
 		Instant whenToRun = timeToRun.toInstant(zoneOffSet);
 		scheduledWakeTime = poolScheduler.schedule(() -> turnMonitorOn(whenToRun), whenToRun);
-		LOGGER.info("Wake Time schedule for: " + wakeTime);
+		LOGGER.info("Wake Time schedule for: " + wakeTime + " on " + timeToRun.getDayOfWeek());
 	}
 
 	public void turnMonitorOff(Instant whenToRun) {
